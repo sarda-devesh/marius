@@ -30,7 +30,7 @@ pip3 install . --no-build-isolation
 ```
 
 **CPU Only Installation**: If your machine does not have a GPU, remove the `--gpus all` from the docker run command in the GPU installation instructions. 
-You can also optionally use the Dockerfile in `cpu_ubuntu/` rather than `gpu_ubuntu/`.
+You can also optionally use the Dockerfile in `cpu_ubuntu/` rather than `gpu_ubuntu/`. Also if you are using a M1 or M2 mac, use the docker file in `cpu_apple_silicon`. 
 
 **Installation Notes**:
 1. The installation requires Docker to have at least 8GB of memory to work with. This is generally satisfied by
