@@ -1,3 +1,0 @@
-batch_size: 10
-pipeline:
-  sync: false
