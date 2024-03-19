@@ -23,7 +23,7 @@ def run_for_worker(arguments):
     sampler = SubgraphSampler(data_loader, config)
 
     # Read the config arguments
-    sample_percentage = 100
+    sample_percentage = 50
     if "sample_percentage" in config:
         sample_percentage = float(config["sample_percentage"])
 
