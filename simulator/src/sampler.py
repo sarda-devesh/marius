@@ -27,13 +27,10 @@ class SubgraphSampler:
 
         # Create the features_config
         feature_stats = self.config["features_stats"]
-        features_config = FeaturesLoaderConfig() 
-        features_config.features_type = feature_stats["featurizer_type"]
-        features_config.feature_size = np.dtype(feature_stats["feature_size"]).itemsize
-        features_config.page_size = humanfriendly.parse_size(feature_stats["page_size"])
-        features_config.feature_dimension = int(feature_stats["feature_dimension"])
-        self.features_config = features_config
-        print("Features config of", features_config.features_type, features_config.feature_size, features_config.page_size, features_config.feature_dimension)
+        feature_size = np.dtype(feature_stats["feature_size"]).itemsize
+        page_size = 1.0 * humanfriendly.parse_size(feature_stats["page_size"])
+        feature_dimension = int(feature_stats["feature_dimension"])
+        self.nodes_per_page = int(page_size/(feature_size * feature_dimension))
 
         # Determine the in memory nodes
         in_memory_nodes = torch.empty((0,), dtype = torch.int64).to(self.device)
@@ -48,19 +45,20 @@ class SubgraphSampler:
         # Create the sampler
         sampling_depth = int(self.config["sampling_depth"])
         levels = [-1 for _ in range(sampling_depth)]
-        self.sampler = LayeredNeighborSampler(self.current_graph, levels, in_memory_nodes, features_config)
+        self.sampler = LayeredNeighborSampler(self.current_graph, levels, in_memory_nodes)
 
     def perform_sampling_for_nodes(self, batch):        
         # Get all nodes
         batch = batch.to(self.device)
-        total_pages = 1.0 * self.sampler.getNeighborsPages(batch)
-        return True, total_pages/batch.numel()
+        nodes_to_load = 1.0 * self.sampler.getNeighborsNodes(batch)
+        nodes_pages = torch.floor(nodes_to_load/self.nodes_per_page)
+        unique_pages = torch.unique(nodes_pages)
+        return True, unique_pages.numel()/batch.numel()
 
     def get_values_to_log(self):
-        nodes_per_page = int(self.features_config.page_size/(self.features_config.feature_size * self.features_config.feature_dimension))
-        total_pages = int(math.ceil(self.data_loader.get_num_nodes() / (1.0 * nodes_per_page)))
+        total_pages = int(math.ceil(self.data_loader.get_num_nodes() / (1.0 * self.nodes_per_page)))
         return {
-            "Nodes Per Page" : nodes_per_page,
+            "Nodes Per Page" : self.nodes_per_page,
             "Total Pages" : total_pages,
             "Nodes In Memory" : self.nodes_in_memory
         }

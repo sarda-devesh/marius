@@ -44,7 +44,7 @@ class NeighborSampler {
      */
     virtual DENSEGraph getNeighbors(torch::Tensor node_ids, shared_ptr<MariusGraph> graph = nullptr, int worker_id = 0) = 0;
 
-    virtual int64_t getNeighborsPages(torch::Tensor node_ids, shared_ptr<MariusGraph> graph = nullptr, int worker_id = 0) = 0;
+    virtual torch::Tensor getNeighborsNodes(torch::Tensor node_ids, shared_ptr<MariusGraph> graph = nullptr, int worker_id = 0) = 0;
 };
 
 class LayeredNeighborSampler : public NeighborSampler {
@@ -52,7 +52,6 @@ class LayeredNeighborSampler : public NeighborSampler {
     bool use_incoming_nbrs_;
     bool use_outgoing_nbrs_;
     std::vector<shared_ptr<NeighborSamplingConfig>> sampling_layers_;
-    std::shared_ptr<FeaturesLoader> features_loader_;
     torch::Tensor in_mem_nodes_;
     float percent_removed_total_ = 0.0;
     int64_t percent_count_ = 0;
@@ -70,7 +69,7 @@ class LayeredNeighborSampler : public NeighborSampler {
                            bool use_outgoing_nbrs = true);
     
     LayeredNeighborSampler(shared_ptr<MariusGraph> graph, std::vector<shared_ptr<NeighborSamplingConfig>> layer_configs, torch::Tensor in_mem_nodes, 
-                           shared_ptr<FeaturesLoaderConfig> features_config, bool use_incoming_nbrs = false, bool use_outgoing_nbrs = true);
+                           bool use_incoming_nbrs = false, bool use_outgoing_nbrs = true);
 
     LayeredNeighborSampler(std::vector<shared_ptr<NeighborSamplingConfig>> layer_configs, bool use_incoming_nbrs = true, bool use_outgoing_nbrs = true);
 
@@ -84,7 +83,7 @@ class LayeredNeighborSampler : public NeighborSampler {
 
     float getAvgPercentRemoved();
 
-    int64_t getNeighborsPages(torch::Tensor node_ids, shared_ptr<MariusGraph> graph = nullptr, int worker_id = 0) override;
+    torch::Tensor getNeighborsNodes(torch::Tensor node_ids, shared_ptr<MariusGraph> graph = nullptr, int worker_id = 0) override;
 
     torch::Tensor computeDeltaIdsHelperMethod1(torch::Tensor hash_map, torch::Tensor node_ids, torch::Tensor delta_incoming_edges,
                                                torch::Tensor delta_outgoing_edges, int64_t num_nodes_in_memory);

@@ -363,7 +363,7 @@ LayeredNeighborSampler::LayeredNeighborSampler(shared_ptr<GraphModelStorage> sto
 }
 
 LayeredNeighborSampler::LayeredNeighborSampler(shared_ptr<MariusGraph> graph, std::vector<shared_ptr<NeighborSamplingConfig>> layer_configs, torch::Tensor in_mem_nodes, 
-                                               shared_ptr<FeaturesLoaderConfig> features_config, bool use_incoming_nbrs, bool use_outgoing_nbrs) {
+                                               bool use_incoming_nbrs, bool use_outgoing_nbrs) {
     
     graph_ = graph;
     storage_ = nullptr;
@@ -371,7 +371,6 @@ LayeredNeighborSampler::LayeredNeighborSampler(shared_ptr<MariusGraph> graph, st
     use_incoming_nbrs_ = use_incoming_nbrs;
     use_outgoing_nbrs_ = use_outgoing_nbrs;
     in_mem_nodes_ = in_mem_nodes;
-    features_loader_ = get_feature_loader(features_config, graph);
 
     checkLayerConfigs();
 
@@ -626,7 +625,7 @@ torch::Tensor LayeredNeighborSampler::remove_in_mem_nodes(torch::Tensor node_ids
     return node_ids;
 }
 
-int64_t LayeredNeighborSampler::getNeighborsPages(torch::Tensor node_ids, shared_ptr<MariusGraph> graph, int worker_id) {
+torch::Tensor LayeredNeighborSampler::getNeighborsNodes(torch::Tensor node_ids, shared_ptr<MariusGraph> graph, int worker_id) {
     torch::Tensor incoming_edges;
     Indices incoming_offsets;
     Indices in_neighbors_mapping;
@@ -802,7 +801,7 @@ int64_t LayeredNeighborSampler::getNeighborsPages(torch::Tensor node_ids, shared
         }
     }
 
-    return features_loader_->num_pages_for_nodes(node_ids);
+    return node_ids;
 }
 
 torch::Tensor LayeredNeighborSampler::computeDeltaIdsHelperMethod1(torch::Tensor hash_map, torch::Tensor node_ids, torch::Tensor delta_incoming_edges,

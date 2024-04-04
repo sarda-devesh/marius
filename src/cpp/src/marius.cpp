@@ -193,11 +193,11 @@ void sampler_test(shared_ptr<MariusConfig> marius_config) {
         sampling_layers.emplace_back(ptr);
     }
     torch::Tensor in_memory_nodes = torch::tensor({2}, torch::kInt64);
-    shared_ptr<LayeredNeighborSampler> sampler = std::make_shared<LayeredNeighborSampler>(graph, sampling_layers, in_memory_nodes, features_config);
+    shared_ptr<LayeredNeighborSampler> sampler = std::make_shared<LayeredNeighborSampler>(graph, sampling_layers, in_memory_nodes);
     
     // Got sample for example tensor
     torch::Tensor example_tensor = torch::tensor({1}, torch::kInt64);
-    std::cout << "Sampler has page of " << sampler->getNeighborsPages(example_tensor) << std::endl;
+    std::cout << "Sampler has page of " << sampler->getNeighborsNodes(example_tensor).numel() << std::endl;
     std::cout << "Avg Scaling of " << sampler->getAvgScalingFactor() << std::endl;
     std::cout << "Avg Percent Removed of " << sampler->getAvgPercentRemoved() << std::endl;
 }

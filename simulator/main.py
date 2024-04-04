@@ -60,7 +60,7 @@ def run_for_worker(arguments):
 
             pages_time_taken.append(time.time() - start_time)
         except:
-            print("Worker", i, "batch", batch_idx, "failed due to error", traceback.format_exc())
+            print("Batch", batch_idx, "failed due to error", traceback.format_exc())
 
         # Log the value
         if batch_idx > 0 and batch_idx % log_rate == 0:

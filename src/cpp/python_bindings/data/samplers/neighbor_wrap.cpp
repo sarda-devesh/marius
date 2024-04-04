@@ -13,8 +13,8 @@ class PyNeighborSampler : NeighborSampler {
         PYBIND11_OVERRIDE_PURE_NAME(DENSEGraph, NeighborSampler, "getNeighbors", getNeighbors, node_ids, graph, worker_id);
     }
 
-    int64_t getNeighborsPages(torch::Tensor node_ids, shared_ptr<MariusGraph> graph, int worker_id) override {
-        PYBIND11_OVERRIDE_PURE_NAME(int64_t, NeighborSampler, "getNeighborsPages", getNeighborsPages, node_ids, graph, worker_id);
+    torch::Tensor getNeighborsNodes(torch::Tensor node_ids, shared_ptr<MariusGraph> graph, int worker_id) override {
+        PYBIND11_OVERRIDE_PURE_NAME(torch::Tensor, NeighborSampler, "getNeighborsNodes", getNeighborsNodes, node_ids, graph, worker_id);
     }
 };
 
@@ -22,7 +22,7 @@ void init_neighbor_samplers(py::module &m) {
     py::class_<NeighborSampler, PyNeighborSampler, std::shared_ptr<NeighborSampler>>(m, "NeighborSampler")
         .def_readwrite("storage", &NeighborSampler::storage_)
         .def("getNeighbors", &NeighborSampler::getNeighbors, py::arg("node_ids"), py::arg("graph") = nullptr, py::arg("worker_id") = 0)
-        .def("getNeighborsPages", &NeighborSampler::getNeighborsPages, py::arg("node_ids"), py::arg("graph") = nullptr, py::arg("worker_id") = 0);
+        .def("getNeighborsNodes", &NeighborSampler::getNeighborsNodes, py::arg("node_ids"), py::arg("graph") = nullptr, py::arg("worker_id") = 0);
 
     py::class_<LayeredNeighborSampler, NeighborSampler, std::shared_ptr<LayeredNeighborSampler>>(m, "LayeredNeighborSampler")
         .def_readwrite("sampling_layers", &LayeredNeighborSampler::sampling_layers_)
@@ -70,8 +70,8 @@ void init_neighbor_samplers(py::module &m) {
              }),
              py::arg("graph"), py::arg("num_neighbors"), py::arg("use_hashmap_sets") = false)
         
-        .def(py::init([](shared_ptr<MariusGraph> graph, std::vector<int> num_neighbors, torch::Tensor in_mem_nodes, shared_ptr<FeaturesLoaderConfig> features_config, 
-                        bool use_incoming_nbrs, bool use_outgoing_nbrs, bool use_hashmap_sets) {
+        .def(py::init([](shared_ptr<MariusGraph> graph, std::vector<int> num_neighbors, torch::Tensor in_mem_nodes,  bool use_incoming_nbrs, 
+                bool use_outgoing_nbrs, bool use_hashmap_sets) {
 
                  std::vector<shared_ptr<NeighborSamplingConfig>> sampling_layers;
                  for (auto n : num_neighbors) {
@@ -88,10 +88,10 @@ void init_neighbor_samplers(py::module &m) {
                      ptr->use_hashmap_sets = use_hashmap_sets;
                      sampling_layers.emplace_back(ptr);
                  }
-                 return std::make_shared<LayeredNeighborSampler>(graph, sampling_layers, in_mem_nodes, features_config, use_incoming_nbrs, use_outgoing_nbrs);
+                 return std::make_shared<LayeredNeighborSampler>(graph, sampling_layers, in_mem_nodes, use_incoming_nbrs, use_outgoing_nbrs);
              }),
-             py::arg("graph"), py::arg("num_neighbors"), py::arg("in_mem_nodes"), py::arg("features_config"), py::arg("use_incoming_nbrs") = false, 
-             py::arg("use_incoming_nbrs") = true, py::arg("use_hashmap_sets") = false)
+             py::arg("graph"), py::arg("num_neighbors"), py::arg("in_mem_nodes"), py::arg("use_incoming_nbrs") = false, py::arg("use_outgoing_nbrs") = true, 
+             py::arg("use_hashmap_sets") = false)
 
         .def(py::init([](std::vector<int> num_neighbors, bool use_hashmap_sets) {
                  std::vector<shared_ptr<NeighborSamplingConfig>> sampling_layers;
